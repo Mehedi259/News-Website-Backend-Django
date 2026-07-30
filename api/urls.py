@@ -25,4 +25,20 @@ urlpatterns = [
 
     # Settings
     path('settings', views.SettingListCreateView.as_view()),
+
+    # Contacts
+    path('contacts', views.ContactListCreateView.as_view()),
+    path('contacts/<int:pk>', views.ContactDetailView.as_view()),
+
+    # Subscribers
+    path('subscribers', views.SubscriberListCreateView.as_view()),
+    path('subscribers/<int:pk>', views.SubscriberDetailView.as_view()),
+
+    # Videos
+    path('videos', views.VideoListCreateView.as_view()),
+    path('videos/<int:pk>', views.VideoDetailView.as_view()),
+
+    # EPapers
+    path('epapers', views.EPaperListCreateView.as_view()),
+    path('epapers/<int:pk>', views.EPaperDetailView.as_view()),
 ]

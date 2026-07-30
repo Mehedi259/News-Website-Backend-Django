@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Category, Post, Setting
+from .models import User, Category, Post, Setting, ContactMessage, Subscriber, Video, EPaper
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -51,4 +51,24 @@ class PostSerializer(serializers.ModelSerializer):
 class SettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Setting
+        fields = '__all__'
+
+class ContactMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactMessage
+        fields = '__all__'
+
+class SubscriberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscriber
+        fields = '__all__'
+
+class VideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = '__all__'
+
+class EPaperSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EPaper
         fields = '__all__'

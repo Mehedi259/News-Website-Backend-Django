@@ -4,8 +4,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Q
-from .models import User, Category, Post, Setting
-from .serializers import UserSerializer, CategorySerializer, PostSerializer, SettingSerializer
+from .models import User, Category, Post, Setting, ContactMessage, Subscriber, Video, EPaper
+from .serializers import UserSerializer, CategorySerializer, PostSerializer, SettingSerializer, ContactMessageSerializer, SubscriberSerializer, VideoSerializer, EPaperSerializer
 
 def format_response(success, data=None, message=None, count=None):
     res = {'success': success}
@@ -311,3 +311,240 @@ def get_dashboard_stats(request):
         }))
     except Exception as e:
         return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# --- Additional APIs ---
+
+class ContactListCreateView(views.APIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    def get(self, request):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            contacts = ContactMessage.objects.all().order_by('-created_at')
+            serializer = ContactMessageSerializer(contacts, many=True)
+            return Response(format_response(True, data=serializer.data))
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            serializer = ContactMessageSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(format_response(True, data=serializer.data), status=status.HTTP_201_CREATED)
+            return Response(format_response(False, message='Validation error'), status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ContactDetailView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, pk):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            contact = ContactMessage.objects.filter(pk=pk).first()
+            if not contact:
+                return Response(format_response(False, message='Contact not found'), status=status.HTTP_404_NOT_FOUND)
+            serializer = ContactMessageSerializer(contact, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(format_response(True, data=serializer.data))
+            return Response(format_response(False, message='Validation error'), status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, pk):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            contact = ContactMessage.objects.filter(pk=pk).first()
+            if not contact:
+                return Response(format_response(False, message='Contact not found'), status=status.HTTP_404_NOT_FOUND)
+            contact.delete()
+            return Response(format_response(True, data={}))
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SubscriberListCreateView(views.APIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    def get(self, request):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            subs = Subscriber.objects.all().order_by('-created_at')
+            serializer = SubscriberSerializer(subs, many=True)
+            return Response(format_response(True, data=serializer.data))
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            serializer = SubscriberSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(format_response(True, data=serializer.data), status=status.HTTP_201_CREATED)
+            return Response(format_response(False, message='Validation error'), status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SubscriberDetailView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            sub = Subscriber.objects.filter(pk=pk).first()
+            if not sub:
+                return Response(format_response(False, message='Subscriber not found'), status=status.HTTP_404_NOT_FOUND)
+            sub.delete()
+            return Response(format_response(True, data={}))
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class VideoListCreateView(views.APIView):
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    def get(self, request):
+        try:
+            videos = Video.objects.all().order_by('-created_at')
+            serializer = VideoSerializer(videos, many=True)
+            return Response(format_response(True, data=serializer.data))
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            serializer = VideoSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(format_response(True, data=serializer.data), status=status.HTTP_201_CREATED)
+            return Response(format_response(False, message='Validation error'), status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class VideoDetailView(views.APIView):
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'DELETE']:
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    def get(self, request, pk):
+        try:
+            video = Video.objects.filter(pk=pk).first()
+            if not video:
+                return Response(format_response(False, message='Video not found'), status=status.HTTP_404_NOT_FOUND)
+            serializer = VideoSerializer(video)
+            return Response(format_response(True, data=serializer.data))
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def put(self, request, pk):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            video = Video.objects.filter(pk=pk).first()
+            if not video:
+                return Response(format_response(False, message='Video not found'), status=status.HTTP_404_NOT_FOUND)
+            serializer = VideoSerializer(video, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(format_response(True, data=serializer.data))
+            return Response(format_response(False, message='Validation error'), status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, pk):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            video = Video.objects.filter(pk=pk).first()
+            if not video:
+                return Response(format_response(False, message='Video not found'), status=status.HTTP_404_NOT_FOUND)
+            video.delete()
+            return Response(format_response(True, data={}))
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class EPaperListCreateView(views.APIView):
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    def get(self, request):
+        try:
+            epapers = EPaper.objects.all().order_by('-date')
+            serializer = EPaperSerializer(epapers, many=True)
+            return Response(format_response(True, data=serializer.data))
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            serializer = EPaperSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(format_response(True, data=serializer.data), status=status.HTTP_201_CREATED)
+            return Response(format_response(False, message='Validation error'), status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class EPaperDetailView(views.APIView):
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'DELETE']:
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    def get(self, request, pk):
+        try:
+            epaper = EPaper.objects.filter(pk=pk).first()
+            if not epaper:
+                return Response(format_response(False, message='EPaper not found'), status=status.HTTP_404_NOT_FOUND)
+            serializer = EPaperSerializer(epaper)
+            return Response(format_response(True, data=serializer.data))
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def put(self, request, pk):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            epaper = EPaper.objects.filter(pk=pk).first()
+            if not epaper:
+                return Response(format_response(False, message='EPaper not found'), status=status.HTTP_404_NOT_FOUND)
+            serializer = EPaperSerializer(epaper, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(format_response(True, data=serializer.data))
+            return Response(format_response(False, message='Validation error'), status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def delete(self, request, pk):
+        if not is_admin(request.user):
+            return Response(format_response(False, message='Not authorized as admin'), status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            epaper = EPaper.objects.filter(pk=pk).first()
+            if not epaper:
+                return Response(format_response(False, message='EPaper not found'), status=status.HTTP_404_NOT_FOUND)
+            epaper.delete()
+            return Response(format_response(True, data={}))
+        except Exception as e:
+            return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)

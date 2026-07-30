@@ -74,3 +74,45 @@ class Setting(models.Model):
 
     def __str__(self):
         return self.key
+
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone = models.CharField(max_length=50, blank=True, null=True)
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.subject} from {self.name}"
+
+class Subscriber(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.EmailField(unique=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email
+
+class Video(models.Model):
+    title = models.CharField(max_length=255)
+    embed_url = models.URLField(max_length=500)
+    thumbnail = models.URLField(max_length=500, blank=True, null=True)
+    is_featured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+class EPaper(models.Model):
+    title = models.CharField(max_length=255)
+    date = models.DateField()
+    pdf_url = models.URLField(max_length=500)
+    thumbnail = models.URLField(max_length=500, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.date}"
