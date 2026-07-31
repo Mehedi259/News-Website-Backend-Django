@@ -55,7 +55,7 @@ class Post(models.Model):
     slug = models.SlugField(max_length=255, unique=True)
     content = models.TextField()
     excerpt = models.TextField(blank=True, null=True)
-    image = models.CharField(max_length=500, blank=True, null=True)
+    image = models.TextField(blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='posts')
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')

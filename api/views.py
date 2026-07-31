@@ -303,11 +303,15 @@ def get_dashboard_stats(request):
         total_users = User.objects.count()
         total_views = sum([p.views for p in Post.objects.all()])
         
+        recent_posts_qs = Post.objects.all().order_by('-created_at')[:5]
+        recent_posts = PostSerializer(recent_posts_qs, many=True).data
+
         return Response(format_response(True, data={
             'totalPosts': total_posts,
             'totalCategories': total_categories,
             'totalUsers': total_users,
-            'totalViews': total_views
+            'totalViews': total_views,
+            'recentPosts': recent_posts
         }))
     except Exception as e:
         return Response(format_response(False, message=str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
