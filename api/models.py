@@ -116,3 +116,13 @@ class EPaper(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.date}"
+
+class DailyStat(models.Model):
+    date = models.DateField(unique=True)
+    page_views = models.IntegerField(default=0)
+    unique_visitors = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Stats for {self.date}"
