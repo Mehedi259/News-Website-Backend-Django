@@ -58,6 +58,8 @@ class Post(models.Model):
     image = models.TextField(blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='posts')
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    reporter = models.CharField(max_length=255, blank=True, null=True)
+    published_date = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
     views = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
